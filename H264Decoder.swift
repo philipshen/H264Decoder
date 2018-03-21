@@ -19,9 +19,13 @@ class VideoFrameDecoder {
     
     static var delegate: VideoFrameDecoderDelegate?
     
-    var formatDesc: CMVideoFormatDescription?
-    var decompressionSession: VTDecompressionSession?
+    private var formatDesc: CMVideoFormatDescription?
+    private var decompressionSession: VTDecompressionSession?
     
+    /*
+     Ideally, whoever calls this function would be returned the displayable frame.
+     Still figuring that one out. In the meantime this stuff works.
+    */
     func interpretRawFrameData(_ frameData: inout FrameData) {
         var naluType = frameData[4] & 0x1F
         if naluType != 7 && formatDesc == nil { return }
@@ -141,7 +145,7 @@ class VideoFrameDecoder {
         }
     }
     
-    func createFormatDescription(sps: [UInt8], pps: [UInt8]) -> Bool {
+    private func createFormatDescription(sps: [UInt8], pps: [UInt8]) -> Bool {
         formatDesc = nil
         
         let pointerSPS = UnsafePointer<UInt8>(sps)
@@ -158,7 +162,7 @@ class VideoFrameDecoder {
         return status == noErr
     }
     
-    func createDecompressionSession() -> Bool {
+    private func createDecompressionSession() -> Bool {
         guard let desc = formatDesc else { return false }
         
         if let session = decompressionSession {
@@ -202,7 +206,7 @@ class VideoFrameDecoder {
         }
     }
     
-    func imageDecompressed(image: CVPixelBuffer) {
+    private func imageDecompressed(image: CVPixelBuffer) {
         VideoFrameDecoder.delegate?.receivedDisplayableFrame(image)
     }
     
